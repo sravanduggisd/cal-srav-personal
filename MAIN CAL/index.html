@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="theme-color" content="#0b4d99">
+  <title>Cal Ledger - Daily Accounts & Statement App</title>
+  <link rel="icon" type="image/jpeg" href="app-icon.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=8">
+</head>
+<body class="day-mode">
+  <div class="app-container">
+
+    <!-- =========================================================
+         SIDE NAVIGATION DRAWER (≡ / ====): All Customers Kept Inside Here!
+         ========================================================= -->
+    <div class="side-drawer-overlay" id="drawerOverlay"></div>
+    <aside class="side-drawer" id="sideDrawer">
+      <div class="drawer-header">
+        <div class="drawer-title-box">
+          <span class="drawer-icon">👥</span>
+          <div>
+            <h3 class="drawer-heading">ALL CUSTOMERS</h3>
+            <p class="drawer-sub">Private Directory</p>
+          </div>
+        </div>
+        <button class="drawer-close-btn" id="closeDrawerBtn" title="Close">✕</button>
+      </div>
+
+      <!-- Add New Customer Inside Side Drawer -->
+      <div class="drawer-top-action">
+        <button class="btn-drawer-add" id="openAddCustomerDrawerBtn">
+          <span>+</span>
+          <span>ADD NEW CUSTOMER</span>
+        </button>
+      </div>
+
+      <!-- Search Field Inside Drawer -->
+      <div class="drawer-search-wrap">
+        <span class="d-search-icon">🔍</span>
+        <input type="text" id="drawerCustomerSearch" placeholder="Search customer name..." class="drawer-search-input">
+      </div>
+
+      <!-- Customer List Inside Side Drawer -->
+      <div class="drawer-customers-list" id="drawerCustomersList">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Drawer Footer -->
+      <div class="drawer-footer">
+        <button id="drawerClearAllBtn" class="btn-drawer-danger">Clear All App Data</button>
+        <button id="drawerDemoBtn" class="btn-drawer-subtle">Load Sample Demo</button>
+      </div>
+    </aside>
+
+    <!-- =========================================================
+         MAIN SCREEN 1: CALCULATION & AMOUNT ENTRY (Default View)
+         Other customers are HIDDEN. This is the main calculation tool.
+         ========================================================= -->
+    <main class="app-page active" id="pageCalculation">
+      <!-- App Header with Hamburger (≡ / ====) and Actions -->
+      <header class="calc-screen-header">
+        <!-- The ==== Hamburger Menu Button to open Customers Drawer -->
+        <button class="menu-hamburger-btn" id="openMenuDrawerBtn" title="All Customers (====)">
+          <span class="h-line"></span>
+          <span class="h-line"></span>
+          <span class="h-line"></span>
+        </button>
+
+        <!-- Active Customer Name Display -->
+        <div class="active-customer-header" id="activeCustHeaderBox" title="Tap to switch customer">
+          <div class="active-badge-tag">ACTIVE ACCOUNT</div>
+          <h2 class="active-cust-title" id="activeCustomerTitle">Select Customer</h2>
+        </div>
+
+        <!-- Header Actions: Statement Slip & Calculator -->
+        <div class="header-right-actions">
+          <button id="goToStatementBtn" class="tool-btn primary" title="View & Download Statement Slip">📄 Statement</button>
+          <button id="calcOpenBtn" class="tool-btn" title="Calculator">🧮</button>
+        </div>
+      </header>
+
+      <!-- Top Calculation Box -->
+      <section class="customer-balance-box">
+        <div class="cust-bal-label">REMAINING BALANCE</div>
+        <div class="cust-bal-display">
+          <span class="currency-sign">₹</span>
+          <span class="cust-bal-digits" id="activeRemainingBalance">0</span>
+        </div>
+
+        <!-- 3 Breakdown Pills: Old Balance (Black), Debited (Red), Credited (Green) -->
+        <div class="cust-breakdown-row">
+          <div class="cust-pill pill-old-bal" id="pillOldBalBox" title="Tap to view past entries archived in Old Balance" style="cursor: pointer;">
+            <span class="cp-title">OLD BALANCE 📜</span>
+            <span class="cp-val" id="activeOldBalanceVal">₹0</span>
+          </div>
+          <div class="cust-pill pill-paid">
+            <span class="cp-title">DEBITED (−)</span>
+            <span class="cp-val" id="activeDebitedVal">-₹0</span>
+          </div>
+          <div class="cust-pill pill-credit">
+            <span class="cp-title">CREDITED (+)</span>
+            <span class="cp-val" id="activeCreditedVal">+₹0</span>
+          </div>
+        </div>
+
+        <div class="customer-action-subbar">
+          <div class="qcb-text" id="activeOldBalDateLabel">Old Bal Date: -</div>
+          <div class="subbar-btns">
+            <button class="btn-tiny" id="btnEditOldBal">✏️ Edit Old Bal</button>
+            <button class="btn-tiny" id="btnViewOldHistory" title="View past entries archived in Old Balance">📜 Old Bal Entries (<span id="oldHistoryCountBadge">0</span>)</button>
+            <button class="btn-tiny primary" id="btnCarryForward">🔄 Carry As Old</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Daily Transactions Feed for this Customer -->
+      <div class="tx-feed-wrapper">
+        <div class="tx-feed-header">
+          <span class="section-title">DAILY CALCULATION ENTRIES</span>
+          <div class="tx-header-right-tools">
+            <button class="sort-toggle-btn" id="sortOrderToggleBtn" onclick="toggleSortOrder()" title="Toggle Sort Order">
+              <span id="sortOrderIcon">⬇️</span>
+              <span id="sortOrderLabel">First Added Top</span>
+            </button>
+            <span class="cust-count-badge" id="txCountBadge">0 Entries</span>
+          </div>
+        </div>
+
+        <div class="tx-feed-list" id="activeTxFeedList">
+          <!-- Plain, clean entries with ZERO dustbins -->
+        </div>
+      </div>
+
+      <!-- Strictly CREDITED / DEBITED Dual Bottom Action Bar -->
+      <div class="dual-action-bottom-bar">
+        <button class="btn-dual btn-gave" id="btnOpenDebitEntry">
+          <span class="sign-icon">−</span>
+          <div class="btn-text-wrap">
+            <span class="btn-bold-title">DEBITED (−)</span>
+            <span class="btn-sub-title">(DEDUCTION / PAID)</span>
+          </div>
+        </button>
+        <button class="btn-dual btn-got" id="btnOpenCreditEntry">
+          <span class="sign-icon">+</span>
+          <div class="btn-text-wrap">
+            <span class="btn-bold-title">CREDITED (+)</span>
+            <span class="btn-sub-title">(ADDITION / RECEIVED)</span>
+          </div>
+        </button>
+      </div>
+    </main>
+
+    <!-- =========================================================
+         MAIN SCREEN 2: DEDICATED STATEMENT SLIP (Plain, Zero Dustbins)
+         ========================================================= -->
+    <main class="app-page" id="pageStatementSlip">
+      <header class="calc-screen-header">
+        <button class="back-nav-btn" id="backToCalcBtn" title="Back to Calculation">
+          <span class="back-arrow">←</span>
+        </button>
+        <div class="active-customer-header">
+          <div class="active-badge-tag">STATEMENT SLIP</div>
+          <h2 class="active-cust-title" id="statementSlipCustomerTitle">Account Statement</h2>
+        </div>
+      </header>
+
+      <div class="statement-page-content">
+        <p class="statement-instruction-text">
+          Exact 3-column statement matching your reference. 100% plain with zero icons.
+        </p>
+
+        <!-- EXACT 3-COLUMN REFERENCE TABLE -->
+        <div class="statement-card-wrapper" id="statementSlipContainer">
+          <table class="slip-reference-table">
+            <thead>
+              <tr>
+                <th class="col-date">Date</th>
+                <th class="col-desc">Description</th>
+                <th class="col-amt">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="statementSlipTableBody">
+              <!-- Dynamically populated rows: Old Balance, Debited, Credited, Remaining Balance -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Download & WhatsApp Share Buttons -->
+        <div class="statement-bottom-buttons">
+          <button class="btn-sheet-download" id="btnDownloadStatementPhoto">
+            <span>📸</span>
+            <span>DOWNLOAD PHOTO SLIP (PNG)</span>
+          </button>
+          <button class="btn-sheet-wa" id="btnShareStatementWhatsApp">
+            <span>💬</span>
+            <span>SHARE ON WHATSAPP</span>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- =========================================================
+         MODAL: ADD NEW CUSTOMER
+         ========================================================= -->
+    <div class="modal-overlay" id="addCustomerModal">
+      <div class="dialog-card">
+        <div class="dialog-header">
+          <h3 class="dialog-title">Add New Customer</h3>
+          <button class="dialog-close" id="closeAddCustomerModalBtn">✕</button>
+        </div>
+        <form id="addCustomerForm" class="dialog-form">
+          <div class="form-item">
+            <label for="newCustName">Customer / Person Name*</label>
+            <input type="text" id="newCustName" class="form-control" placeholder="e.g. Hari, Dhana, P. Lakshmi Kumar..." required autofocus>
+          </div>
+
+          <div class="form-item">
+            <label for="newCustPhone">Phone Number (Optional)</label>
+            <input type="tel" id="newCustPhone" class="form-control" placeholder="e.g. 9876543210">
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-item">
+              <label for="newCustOldBal">Starting / Old Balance (₹)</label>
+              <input type="number" step="any" id="newCustOldBal" class="form-control" placeholder="0" value="0">
+            </div>
+            <div class="form-item">
+              <label for="newCustOldBalDate">Old Balance Date</label>
+              <input type="text" id="newCustOldBalDate" class="form-control" placeholder="e.g. 30th Sep">
+            </div>
+          </div>
+
+          <div class="dialog-actions">
+            <button type="button" class="btn-subtle" id="cancelAddCustomerBtn">Cancel</button>
+            <button type="submit" class="btn-primary-bold">Save & Open Ledger</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- =========================================================
+         MODAL: ADD ENTRY (DEBITED / CREDITED)
+         ========================================================= -->
+    <div class="modal-overlay" id="addEntryModal">
+      <div class="dialog-card">
+        <div class="dialog-header">
+          <h3 class="dialog-title" id="entryDialogTitle">Record Entry</h3>
+          <button class="dialog-close" id="closeEntryModalBtn">✕</button>
+        </div>
+
+        <form id="addEntryForm" class="dialog-form">
+          <!-- Strictly DEBITED / CREDITED Tabs -->
+          <div class="type-button-tabs">
+            <button type="button" class="tab-type tab-debit active" id="tabDebitChoice" data-type="DEBIT">
+              <span>🔴 DEBITED (−)</span>
+            </button>
+            <button type="button" class="tab-type tab-credit" id="tabCreditChoice" data-type="CREDIT">
+              <span>🟢 CREDITED (+)</span>
+            </button>
+          </div>
+
+          <div class="form-item">
+            <label for="entryAmountField">Amount (₹)*</label>
+            <div class="amount-field-wrap">
+              <span class="currency-prefix">₹</span>
+              <input type="number" step="any" id="entryAmountField" class="form-control amount-large-input" placeholder="0" required autofocus>
+            </div>
+          </div>
+
+          <div class="form-item">
+            <label for="entryDateTextField">Date* (Editable)</label>
+            <input type="text" id="entryDateTextField" class="form-control" placeholder="e.g. 6th Oct" required>
+          </div>
+
+          <div class="form-item">
+            <label for="entryDescField">Description / Note*</label>
+            <input type="text" id="entryDescField" class="form-control" placeholder="e.g. Paid, Interest Money, Cash..." required>
+            <div class="quick-chips-row">
+              <button type="button" class="quick-chip" onclick="applyQuickNote('Paid')">Paid</button>
+              <button type="button" class="quick-chip" onclick="applyQuickNote('Interest Money')">Interest Money</button>
+              <button type="button" class="quick-chip" onclick="applyQuickNote('Account Transfer')">Account Transfer</button>
+              <button type="button" class="quick-chip" onclick="applyQuickNote('Advance')">Advance</button>
+            </div>
+          </div>
+
+          <div class="dialog-actions">
+            <button type="button" class="btn-subtle" id="cancelEntryBtn">Cancel</button>
+            <button type="submit" class="btn-primary-bold" id="saveEntryBtn">Save Entry</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- =========================================================
+         MODAL: EDIT OLD BALANCE ONLY
+         ========================================================= -->
+    <div class="modal-overlay" id="editOldBalModal">
+      <div class="dialog-card">
+        <div class="dialog-header">
+          <h3 class="dialog-title">Edit Starting / Old Balance</h3>
+          <button class="dialog-close" id="closeEditOldBalModalBtn">✕</button>
+        </div>
+        <div class="dialog-form">
+          <div class="form-item">
+            <label for="editOldBalInput">Old Balance Amount (₹)*</label>
+            <input type="number" step="any" id="editOldBalInput" class="form-control" placeholder="0">
+          </div>
+          <div class="form-item">
+            <label for="editOldBalDateInput">Old Balance Date Label*</label>
+            <input type="text" id="editOldBalDateInput" class="form-control" placeholder="e.g. 27th Sep">
+          </div>
+          <div class="dialog-actions">
+            <button type="button" class="btn-subtle" id="cancelEditOldBalBtn">Cancel</button>
+            <button type="button" class="btn-primary-bold" id="saveEditOldBalBtn">Update Old Balance</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================
+         MODAL: OLD BALANCE PAST ENTRIES (MANAGER PRIVATE ARCHIVE)
+         ========================================================= -->
+    <div class="modal-overlay" id="oldHistoryModal">
+      <div class="dialog-card modal-wide">
+        <div class="dialog-header">
+          <div>
+            <h3 class="dialog-title">📜 Old Balance Past Entries</h3>
+            <p class="dialog-subtitle">Manager archive • Hidden from customer statements</p>
+          </div>
+          <button class="dialog-close" id="closeOldHistoryModalBtn">✕</button>
+        </div>
+
+        <div class="old-history-content" id="oldHistoryContent">
+          <!-- Dynamic archived cycles list -->
+        </div>
+
+        <div class="dialog-actions history-actions-footer">
+          <button type="button" class="btn-subtle" id="closeOldHistoryBottomBtn">Close</button>
+          <button type="button" class="btn-danger-outline" id="clearAllOldHistoryBtn">🗑️ Delete All Past Records</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================
+         POPUP CALCULATOR
+         ========================================================= -->
+    <div class="calc-popup" id="calcPopup">
+      <div class="calc-header-bar">
+        <span>Quick Calculator</span>
+        <button id="closeCalcPopupBtn" class="calc-close-x">✕</button>
+      </div>
+      <div class="calc-screen-box">
+        <div class="calc-math-expr" id="calcMathExpr"></div>
+        <div class="calc-math-val" id="calcMathVal">0</div>
+      </div>
+      <div class="calc-grid-pad">
+        <button class="calc-k op" data-k="clear">C</button>
+        <button class="calc-k op" data-k="back">⌫</button>
+        <button class="calc-k op" data-k="%">%</button>
+        <button class="calc-k op" data-k="/">÷</button>
+
+        <button class="calc-k" data-k="7">7</button>
+        <button class="calc-k" data-k="8">8</button>
+        <button class="calc-k" data-k="9">9</button>
+        <button class="calc-k op" data-k="*">×</button>
+
+        <button class="calc-k" data-k="4">4</button>
+        <button class="calc-k" data-k="5">5</button>
+        <button class="calc-k" data-k="6">6</button>
+        <button class="calc-k op" data-k="-">−</button>
+
+        <button class="calc-k" data-k="1">1</button>
+        <button class="calc-k" data-k="2">2</button>
+        <button class="calc-k" data-k="3">3</button>
+        <button class="calc-k op" data-k="+">+</button>
+
+        <button class="calc-k" data-k="0">0</button>
+        <button class="calc-k" data-k="00">00</button>
+        <button class="calc-k" data-k=".">.</button>
+        <button class="calc-k equal" data-k="=">=</button>
+      </div>
+    </div>
+
+    <!-- Hidden High-Res Canvas For Reference Image Export -->
+    <canvas id="photoExportCanvas" style="display:none;"></canvas>
+  </div>
+
+  <script src="app.js?v=8"></script>
+</body>
+</html>

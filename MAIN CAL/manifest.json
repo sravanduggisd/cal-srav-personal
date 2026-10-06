@@ -1,0 +1,17 @@
+{
+  "name": "Cal Ledger - Customer Accounts",
+  "short_name": "Cal Ledger",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0b4d99",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "app-icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

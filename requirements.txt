@@ -1,0 +1,2 @@
+# Python standard library only - zero external packages needed
+# http.server, sqlite3, json, socket, urllib are all built into Python

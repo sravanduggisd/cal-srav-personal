@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: cal-ledger
+    env: python
+    buildCommand: ""
+    startCommand: python "python dev/server.py"
+    plan: free
