@@ -238,6 +238,7 @@ function renderDrawerCustomersList() {
         </div>
         <div class="dcc-actions" onclick="event.stopPropagation()">
           <button class="btn-dcc-select" onclick="selectCustomerFromDrawer('${c.id}')">Select</button>
+          <button class="btn-dcc-edit" onclick="openEditCustomerModal('${c.id}')">Edit</button>
           <button class="btn-dcc-delete" onclick="deleteCustomerFromDrawer('${c.id}', '${escapeHtml(c.name)}')">Delete</button>
         </div>
       </div>
@@ -344,7 +345,11 @@ function renderCalculationScreen() {
         </div>
         <div class="tx-item-right">
           <div class="tx-item-amt ${typeClass}">${sign}${formatCurrency(e.amount)}</div>
-          <button class="tx-plain-remove-btn" onclick="removeActiveEntryPlain('${e.id}')">Remove</button>
+          <div class="tx-item-actions">
+            <button class="tx-plain-edit-btn" onclick="openEditEntryModal('${e.id}')">Edit</button>
+            <span class="tx-action-sep">•</span>
+            <button class="tx-plain-remove-btn" onclick="removeActiveEntryPlain('${e.id}')">Remove</button>
+          </div>
         </div>
       </div>
     `;
@@ -531,13 +536,16 @@ function showStatementSlipScreen() {
   const rows = [];
 
   // Row 1: Old Balance (Soft Blue #eaf2ff) - 100% Plain
-  rows.push(`
-    <tr class="row-old-balance">
-      <td class="cell-date">${escapeHtml(cust.oldBalanceDate || "Old")}</td>
-      <td class="cell-desc">Old Balance</td>
-      <td class="cell-amt">₹${formatCurrency(calc.oldBal)}</td>
-    </tr>
-  `);
+  // Requirement: If Old Balance is 0, do not present Old Balance row. Only show if at least ₹1.
+  if (Math.abs(calc.oldBal) >= 1) {
+    rows.push(`
+      <tr class="row-old-balance">
+        <td class="cell-date">${escapeHtml(cust.oldBalanceDate || "Old")}</td>
+        <td class="cell-desc">Old Balance</td>
+        <td class="cell-amt">₹${formatCurrency(calc.oldBal)}</td>
+      </tr>
+    `);
+  }
 
   // Middle Rows: Debited (Soft Pink #fdeeed) or Credited (Soft Green #f0fdf4) - 100% Plain
   (cust.entries || []).forEach(e => {
@@ -589,10 +597,12 @@ function generatePhotoSlipImage(callback) {
   const canvas = document.getElementById("photoExportCanvas");
   const ctx = canvas.getContext("2d");
 
+  const hasOldBal = Math.abs(calc.oldBal) >= 1;
+  const entriesCount = (cust.entries || []).length;
+  const totalRows = (hasOldBal ? 1 : 0) + entriesCount + 1; // +1 for remaining balance
   const baseWidth = 1024;
   const headerHeight = 110;
   const rowHeight = 115;
-  const totalRows = 2 + (cust.entries || []).length;
   const baseHeight = headerHeight + totalRows * rowHeight;
 
   const scale = 2;
@@ -626,24 +636,26 @@ function generatePhotoSlipImage(callback) {
 
   let currentY = headerHeight;
 
-  // 2. Old Balance (Soft Blue #eaf2ff)
-  ctx.fillStyle = "#eaf2ff";
-  ctx.fillRect(0, currentY, baseWidth, rowHeight);
+  // 2. Old Balance (Soft Blue #eaf2ff) - ONLY render if at least ₹1
+  if (hasOldBal) {
+    ctx.fillStyle = "#eaf2ff";
+    ctx.fillRect(0, currentY, baseWidth, rowHeight);
 
-  ctx.fillStyle = "#000000";
-  ctx.font = "bold 38px 'Plus Jakarta Sans', Arial, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(cust.oldBalanceDate || "Old", x0 + col1W / 2, currentY + rowHeight / 2);
+    ctx.fillStyle = "#000000";
+    ctx.font = "bold 38px 'Plus Jakarta Sans', Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(cust.oldBalanceDate || "Old", x0 + col1W / 2, currentY + rowHeight / 2);
 
-  ctx.textAlign = "left";
-  ctx.fillText("Old Balance", x1 + 35, currentY + rowHeight / 2);
+    ctx.textAlign = "left";
+    ctx.fillText("Old Balance", x1 + 35, currentY + rowHeight / 2);
 
-  ctx.fillStyle = "#006400";
-  ctx.font = "bold 42px 'Plus Jakarta Sans', Arial, sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText(`₹${formatCurrency(calc.oldBal)}`, x2 + col3W / 2, currentY + rowHeight / 2);
+    ctx.fillStyle = "#006400";
+    ctx.font = "bold 42px 'Plus Jakarta Sans', Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`₹${formatCurrency(calc.oldBal)}`, x2 + col3W / 2, currentY + rowHeight / 2);
 
-  currentY += rowHeight;
+    currentY += rowHeight;
+  }
 
   // 3. Middle Rows: Debited (Soft Pink #fdeeed) or Credited (Soft Green #f0fdf4)
   (cust.entries || []).forEach(e => {
@@ -740,9 +752,11 @@ function shareStatementWhatsApp() {
   const calc = calculateCustomer(cust);
   let text = `*CAL LEDGER - STATEMENT*\n*Customer: ${cust.name.toUpperCase()}*\n`;
   text += `━━━━━━━━━━━━━━━━━━\n`;
-  text += `🔹 *Date:* ${cust.oldBalanceDate || "Old"}\n`;
-  text += `🔹 *Old Balance:* ₹${formatCurrency(calc.oldBal)}\n`;
-  text += `━━━━━━━━━━━━━━━━━━\n`;
+  if (Math.abs(calc.oldBal) >= 1) {
+    text += `🔹 *Date:* ${cust.oldBalanceDate || "Old"}\n`;
+    text += `🔹 *Old Balance:* ₹${formatCurrency(calc.oldBal)}\n`;
+    text += `━━━━━━━━━━━━━━━━━━\n`;
+  }
 
   (cust.entries || []).forEach(e => {
     const sign = e.type === "DEBIT" ? "-₹" : "+₹";
@@ -825,15 +839,58 @@ document.getElementById("addCustomerForm").addEventListener("submit", e => {
   renderCalculationScreen();
 });
 
+// Customer Edit Modal
+let editingCustomerId = null;
+
+window.openEditCustomerModal = function(custId) {
+  const targetId = custId || AppState.activeCustomerId;
+  const c = AppState.customers.find(item => item.id === targetId) || getActiveCustomer();
+  if (!c) return;
+
+  editingCustomerId = c.id;
+  document.getElementById("editCustName").value = c.name;
+  document.getElementById("editCustPhone").value = c.phone || "";
+  document.getElementById("editCustomerModal").classList.add("active");
+  setTimeout(() => document.getElementById("editCustName").focus(), 150);
+};
+
+window.closeEditCustomerModal = function() {
+  document.getElementById("editCustomerModal").classList.remove("active");
+  editingCustomerId = null;
+};
+
+document.getElementById("editCustomerForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const name = document.getElementById("editCustName").value.trim();
+  const phone = document.getElementById("editCustPhone").value.trim();
+  if (!name) return;
+
+  const targetId = editingCustomerId || AppState.activeCustomerId;
+  const c = AppState.customers.find(item => item.id === targetId);
+  if (c) {
+    c.name = name;
+    c.phone = phone;
+    saveState();
+    closeEditCustomerModal();
+    renderCalculationScreen();
+    renderDrawerCustomersList();
+  }
+});
+
 // Entry Modal (Strictly DEBITED / CREDITED)
 let activeEntryType = "DEBIT";
+let editingEntryId = null;
 
 function openEntryModal(type = "DEBIT") {
   const cust = getActiveCustomer();
   if (!cust) return;
 
+  editingEntryId = null;
   activeEntryType = type;
   setEntryTab(type);
+
+  document.getElementById("entryDialogTitle").textContent = "Record Entry";
+  document.getElementById("saveEntryBtn").textContent = "Save Entry";
 
   document.getElementById("entryAmountField").value = "";
   document.getElementById("entryDateTextField").value = getTodayText();
@@ -843,7 +900,30 @@ function openEntryModal(type = "DEBIT") {
   setTimeout(() => document.getElementById("entryAmountField").focus(), 150);
 }
 
+window.openEditEntryModal = function(entryId) {
+  const cust = getActiveCustomer();
+  if (!cust) return;
+
+  const entry = (cust.entries || []).find(e => e.id === entryId);
+  if (!entry) return;
+
+  editingEntryId = entryId;
+  activeEntryType = entry.type || "DEBIT";
+  setEntryTab(activeEntryType);
+
+  document.getElementById("entryDialogTitle").textContent = "Edit Entry";
+  document.getElementById("saveEntryBtn").textContent = "Update Entry";
+
+  document.getElementById("entryAmountField").value = entry.amount;
+  document.getElementById("entryDateTextField").value = entry.date || getTodayText();
+  document.getElementById("entryDescField").value = entry.description || "";
+
+  document.getElementById("addEntryModal").classList.add("active");
+  setTimeout(() => document.getElementById("entryAmountField").focus(), 150);
+};
+
 function closeEntryModal() {
+  editingEntryId = null;
   document.getElementById("addEntryModal").classList.remove("active");
 }
 
@@ -881,13 +961,25 @@ document.getElementById("addEntryForm").addEventListener("submit", e => {
   }
 
   if (!cust.entries) cust.entries = [];
-  cust.entries.push({
-    id: "entry_" + Date.now(),
-    date: dateStr,
-    description: desc,
-    type: activeEntryType,
-    amount: amt
-  });
+
+  if (editingEntryId) {
+    const entry = cust.entries.find(item => item.id === editingEntryId);
+    if (entry) {
+      entry.amount = amt;
+      entry.date = dateStr;
+      entry.description = desc;
+      entry.type = activeEntryType;
+    }
+    editingEntryId = null;
+  } else {
+    cust.entries.push({
+      id: "entry_" + Date.now(),
+      date: dateStr,
+      description: desc,
+      type: activeEntryType,
+      amount: amt
+    });
+  }
 
   saveState();
   closeEntryModal();
@@ -1032,6 +1124,18 @@ function init() {
   // Modals
   document.getElementById("closeAddCustomerModalBtn").addEventListener("click", closeAddCustomerModal);
   document.getElementById("cancelAddCustomerBtn").addEventListener("click", closeAddCustomerModal);
+  
+  // Customer Edit Modal
+  const btnEditCust = document.getElementById("btnEditCustName");
+  if (btnEditCust) {
+    btnEditCust.addEventListener("click", e => {
+      e.stopPropagation();
+      openEditCustomerModal(AppState.activeCustomerId);
+    });
+  }
+  document.getElementById("closeEditCustomerModalBtn").addEventListener("click", closeEditCustomerModal);
+  document.getElementById("cancelEditCustomerBtn").addEventListener("click", closeEditCustomerModal);
+
   document.getElementById("closeEntryModalBtn").addEventListener("click", closeEntryModal);
   document.getElementById("cancelEntryBtn").addEventListener("click", closeEntryModal);
   document.getElementById("tabDebitChoice").addEventListener("click", () => setEntryTab("DEBIT"));

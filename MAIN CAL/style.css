@@ -171,6 +171,12 @@ body.day-mode {
   text-transform: uppercase;
 }
 
+.active-cust-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .active-cust-title {
   font-size: 1rem;
   font-weight: 900;
@@ -178,6 +184,23 @@ body.day-mode {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.btn-edit-cust-inline {
+  background: none;
+  border: none;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1;
+  opacity: 0.65;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.btn-edit-cust-inline:hover {
+  opacity: 1;
+  background: var(--bg-subtle);
 }
 
 .header-right-actions {
@@ -405,6 +428,21 @@ body.day-mode {
   font-size: 0.68rem;
   font-weight: 800;
   cursor: pointer;
+}
+
+.btn-dcc-edit {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: var(--text-secondary);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.btn-dcc-edit:hover {
+  background: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .btn-dcc-delete {
@@ -727,11 +765,38 @@ body.day-mode {
 .tx-item-amt.debit { color: var(--color-red); }
 .tx-item-amt.credit { color: var(--color-green); }
 
+.tx-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tx-action-sep {
+  font-size: 0.65rem;
+  color: var(--border-strong);
+  line-height: 1;
+}
+
+.tx-plain-edit-btn {
+  background: none;
+  border: none;
+  color: var(--brand-blue);
+  font-size: 0.70rem;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+.tx-plain-edit-btn:hover {
+  color: var(--brand-blue-hover);
+  text-decoration: underline;
+}
+
 .tx-plain-remove-btn {
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 0.68rem;
+  font-size: 0.70rem;
   font-weight: 700;
   cursor: pointer;
   padding: 1px 4px;

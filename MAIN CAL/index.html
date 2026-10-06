@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body class="day-mode">
   <div class="app-container">
@@ -76,7 +76,10 @@
         <!-- Active Customer Name Display -->
         <div class="active-customer-header" id="activeCustHeaderBox" title="Tap to switch customer">
           <div class="active-badge-tag">ACTIVE ACCOUNT</div>
-          <h2 class="active-cust-title" id="activeCustomerTitle">Select Customer</h2>
+          <div class="active-cust-title-wrap">
+            <h2 class="active-cust-title" id="activeCustomerTitle">Select Customer</h2>
+            <button type="button" class="btn-edit-cust-inline" id="btnEditCustName" title="Edit Customer Details">✏️</button>
+          </div>
         </div>
 
         <!-- Header Actions: Statement Slip & Calculator -->
@@ -246,7 +249,33 @@
     </div>
 
     <!-- =========================================================
-         MODAL: ADD ENTRY (DEBITED / CREDITED)
+         MODAL: EDIT CUSTOMER (NAME & PHONE)
+         ========================================================= -->
+    <div class="modal-overlay" id="editCustomerModal">
+      <div class="dialog-card">
+        <div class="dialog-header">
+          <h3 class="dialog-title">Edit Customer Details</h3>
+          <button class="dialog-close" id="closeEditCustomerModalBtn">✕</button>
+        </div>
+        <form id="editCustomerForm" class="dialog-form">
+          <div class="form-item">
+            <label for="editCustName">Customer / Person Name*</label>
+            <input type="text" id="editCustName" class="form-control" placeholder="e.g. Hari, Dhana..." required>
+          </div>
+          <div class="form-item">
+            <label for="editCustPhone">Phone Number (Optional)</label>
+            <input type="tel" id="editCustPhone" class="form-control" placeholder="e.g. 9876543210">
+          </div>
+          <div class="dialog-actions">
+            <button type="button" class="btn-subtle" id="cancelEditCustomerBtn">Cancel</button>
+            <button type="submit" class="btn-primary-bold">Update Customer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- =========================================================
+         MODAL: ADD / EDIT ENTRY (DEBITED / CREDITED)
          ========================================================= -->
     <div class="modal-overlay" id="addEntryModal">
       <div class="dialog-card">
@@ -392,6 +421,6 @@
     <canvas id="photoExportCanvas" style="display:none;"></canvas>
   </div>
 
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
