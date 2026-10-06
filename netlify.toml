@@ -1,0 +1,8 @@
+# Netlify Configuration for Cal Ledger
+[build]
+  publish = "MAIN CAL"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
