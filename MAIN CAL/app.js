@@ -801,6 +801,7 @@ function loadReferenceDemo() {
 
 // Customer Modal
 function openAddCustomerModal() {
+  closeSideDrawer();
   document.getElementById("newCustName").value = "";
   document.getElementById("newCustPhone").value = "";
   document.getElementById("newCustOldBal").value = "0";
@@ -843,6 +844,7 @@ document.getElementById("addCustomerForm").addEventListener("submit", e => {
 let editingCustomerId = null;
 
 window.openEditCustomerModal = function(custId) {
+  closeSideDrawer();
   const targetId = custId || AppState.activeCustomerId;
   const c = AppState.customers.find(item => item.id === targetId) || getActiveCustomer();
   if (!c) return;
