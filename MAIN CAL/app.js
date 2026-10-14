@@ -283,25 +283,27 @@ function renderCalculationScreen() {
   const balBox = document.getElementById("customerBalanceBox");
 
   const isNeg = calc.remaining < 0;
-  remDisplay.textContent = formatCurrency(calc.remaining);
+  const formattedRem = formatCurrency(calc.remaining);
+  remDisplay.textContent = formattedRem;
+  const isHuge = formattedRem.length > 10;
 
   if (isNeg) {
     if (curSign) {
       curSign.textContent = "-₹";
       curSign.classList.add("negative");
     }
-    remDisplay.className = "cust-bal-digits negative";
+    remDisplay.className = `cust-bal-digits negative ${isHuge ? "digits-huge" : ""}`;
     if (balBox) balBox.classList.add("is-negative");
   } else {
     if (curSign) {
       curSign.textContent = "₹";
       curSign.classList.remove("negative");
     }
-    remDisplay.className = "cust-bal-digits";
+    remDisplay.className = `cust-bal-digits ${isHuge ? "digits-huge" : ""}`;
     if (balBox) balBox.classList.remove("is-negative");
   }
 
-  // Customer Notes Notebook Widget (User Red Box area)
+  // Customer Notes Strip (Full-width banner below balance - never covers digits!)
   const notesWidget = document.getElementById("custNotesWidget");
   const notesPreview = document.getElementById("custNotesPreview");
   const notesAction = document.getElementById("notesWidgetAction");
@@ -312,8 +314,8 @@ function renderCalculationScreen() {
       if (notesAction) notesAction.textContent = "✏️";
     } else {
       notesWidget.classList.remove("has-note");
-      notesPreview.innerHTML = "<em>Tap to add note...</em>";
-      if (notesAction) notesAction.textContent = "+";
+      notesPreview.innerHTML = "<em>Tap to add note for this account...</em>";
+      if (notesAction) notesAction.textContent = "✏️";
     }
   }
 

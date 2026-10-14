@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=14">
+  <link rel="stylesheet" href="style.css?v=15">
 </head>
 <body class="day-mode">
   <div class="app-container">
@@ -91,25 +91,19 @@
 
       <!-- Top Calculation Box -->
       <section class="customer-balance-box" id="customerBalanceBox">
-        <div class="cust-bal-top-row">
-          <div class="cust-bal-main">
-            <div class="cust-bal-label" id="custBalLabel">TOTAL BALANCE</div>
-            <div class="cust-bal-display">
-              <span class="currency-sign" id="activeCurrencySign">₹</span>
-              <span class="cust-bal-digits" id="activeRemainingBalance">0</span>
-            </div>
-          </div>
+        <div class="cust-bal-label" id="custBalLabel">TOTAL BALANCE</div>
+        <div class="cust-bal-display">
+          <span class="currency-sign" id="activeCurrencySign">₹</span>
+          <span class="cust-bal-digits" id="activeRemainingBalance">0</span>
+        </div>
 
-          <!-- Customer Notes Notebook Widget (Highlighted area from user image) -->
-          <div class="cust-notes-widget" id="custNotesWidget" onclick="openNotesModal()" title="View & Edit Notes for this Customer">
-            <div class="notes-widget-header">
-              <span class="notes-widget-title">📝 Note</span>
-              <span class="notes-widget-action" id="notesWidgetAction">✏️</span>
-            </div>
-            <div class="notes-widget-body" id="custNotesPreview">
-              <em>Tap to add note...</em>
-            </div>
+        <!-- Full-Width Account Note Strip (Never covers balance digits!) -->
+        <div class="cust-note-strip" id="custNotesWidget" onclick="openNotesModal()" title="View & Edit Notes for this Customer">
+          <div class="cns-left">
+            <span class="cns-badge">📝 Note</span>
+            <span class="cns-text" id="custNotesPreview"><em>Tap to add note for this account...</em></span>
           </div>
+          <span class="cns-action" id="notesWidgetAction">✏️</span>
         </div>
 
         <!-- 3 Breakdown Pills: Old Balance (Black), Debited (Red), Credited (Green) -->
@@ -465,6 +459,6 @@
     <canvas id="photoExportCanvas" style="display:none;"></canvas>
   </div>
 
-  <script src="app.js?v=14"></script>
+  <script src="app.js?v=15"></script>
 </body>
 </html>

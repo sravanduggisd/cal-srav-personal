@@ -506,18 +506,6 @@ body.day-mode {
   background: linear-gradient(180deg, #fff5f5 0%, #ffffff 100%);
 }
 
-.cust-bal-top-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.cust-bal-main {
-  flex: 1;
-  min-width: 0;
-}
-
 .cust-bal-label {
   font-size: 0.68rem;
   font-weight: 800;
@@ -529,7 +517,9 @@ body.day-mode {
   display: flex;
   align-items: baseline;
   gap: 3px;
-  margin: 2px 0 10px 0;
+  margin: 2px 0 8px 0;
+  width: 100%;
+  overflow: hidden;
 }
 
 .currency-sign {
@@ -544,81 +534,88 @@ body.day-mode {
 
 .cust-bal-digits {
   font-family: var(--font-mono);
-  font-size: clamp(1.4rem, 5.2vw, 2.2rem);
+  font-size: clamp(1.4rem, 5.8vw, 2.3rem);
   font-weight: 900;
   color: var(--color-green);
   letter-spacing: -0.5px;
   white-space: nowrap;
 }
 
+.cust-bal-digits.digits-huge {
+  font-size: clamp(1.15rem, 4.4vw, 1.8rem);
+  letter-spacing: -0.8px;
+}
+
 .cust-bal-digits.negative {
   color: var(--color-red);
 }
 
-/* Customer Notes Notebook Widget (User Red Box area) */
-.cust-notes-widget {
-  flex-shrink: 0;
-  width: 135px;
-  max-width: 46%;
-  min-height: 56px;
-  max-height: 68px;
+/* Full-Width Note Strip (Placed neatly below balance so big numbers never get covered!) */
+.cust-note-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
   background: #fffdf5;
   border: 1.5px dashed #f59e0b;
-  border-radius: 10px;
-  padding: 6px 9px;
+  border-radius: 9px;
+  padding: 7px 10px;
+  margin-bottom: 12px;
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
   transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   user-select: none;
 }
 
-.cust-notes-widget:hover {
+.cust-note-strip:hover {
   background: #fefce8;
   border-color: #d97706;
-  transform: translateY(-1px);
 }
 
-.cust-notes-widget.has-note {
+.cust-note-strip.has-note {
   background: #fefce8;
   border: 1.5px solid #eab308;
 }
 
-.notes-widget-header {
+.cns-left {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2px;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
 }
 
-.notes-widget-title {
+.cns-badge {
   font-size: 0.72rem;
   font-weight: 800;
   color: #92400e;
+  background: #fef08a;
+  padding: 2px 6px;
+  border-radius: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.notes-widget-action {
-  font-size: 0.72rem;
-  color: #b45309;
-  font-weight: 800;
-}
-
-.notes-widget-body {
-  font-size: 0.72rem;
+.cns-text {
+  font-size: 0.78rem;
   color: #451a03;
-  line-height: 1.25;
+  line-height: 1.3;
+  white-space: nowrap;
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  word-break: break-word;
+  text-overflow: ellipsis;
+  flex: 1;
 }
 
-.notes-widget-body em {
+.cns-text em {
   color: #a8a29e;
   font-style: normal;
+}
+
+.cns-action {
+  font-size: 0.78rem;
+  color: #b45309;
+  font-weight: 800;
+  flex-shrink: 0;
 }
 
 /* 3 Breakdown Pills */
