@@ -501,6 +501,23 @@ body.day-mode {
   box-shadow: var(--shadow-sm);
 }
 
+.customer-balance-box.is-negative {
+  border-color: #fca5a5;
+  background: linear-gradient(180deg, #fff5f5 0%, #ffffff 100%);
+}
+
+.cust-bal-top-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cust-bal-main {
+  flex: 1;
+  min-width: 0;
+}
+
 .cust-bal-label {
   font-size: 0.68rem;
   font-weight: 800;
@@ -521,6 +538,10 @@ body.day-mode {
   color: var(--text-muted);
 }
 
+.currency-sign.negative {
+  color: var(--color-red);
+}
+
 .cust-bal-digits {
   font-family: var(--font-mono);
   font-size: 2.2rem;
@@ -531,6 +552,72 @@ body.day-mode {
 
 .cust-bal-digits.negative {
   color: var(--color-red);
+}
+
+/* Customer Notes Notebook Widget (User Red Box area) */
+.cust-notes-widget {
+  flex-shrink: 0;
+  width: 135px;
+  max-width: 46%;
+  min-height: 56px;
+  max-height: 68px;
+  background: #fffdf5;
+  border: 1.5px dashed #f59e0b;
+  border-radius: 10px;
+  padding: 6px 9px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  user-select: none;
+}
+
+.cust-notes-widget:hover {
+  background: #fefce8;
+  border-color: #d97706;
+  transform: translateY(-1px);
+}
+
+.cust-notes-widget.has-note {
+  background: #fefce8;
+  border: 1.5px solid #eab308;
+}
+
+.notes-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.notes-widget-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #92400e;
+}
+
+.notes-widget-action {
+  font-size: 0.72rem;
+  color: #b45309;
+  font-weight: 800;
+}
+
+.notes-widget-body {
+  font-size: 0.72rem;
+  color: #451a03;
+  line-height: 1.25;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+.notes-widget-body em {
+  color: #a8a29e;
+  font-style: normal;
 }
 
 /* 3 Breakdown Pills */
@@ -874,6 +961,7 @@ body.day-mode {
 
 .slip-reference-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   background: #ffffff;
 }
@@ -883,17 +971,17 @@ body.day-mode {
   color: #ffffff;
   font-size: 1.05rem;
   font-weight: 800;
-  padding: 12px 8px;
+  padding: 12px 6px;
   text-align: center;
   border: 1.5px solid var(--ref-border);
 }
 
-.slip-reference-table th.col-date { width: 26%; }
-.slip-reference-table th.col-desc { width: 44%; }
-.slip-reference-table th.col-amt  { width: 30%; }
+.slip-reference-table th.col-date { width: 23%; }
+.slip-reference-table th.col-desc { width: 51%; }
+.slip-reference-table th.col-amt  { width: 26%; }
 
 .slip-reference-table td {
-  padding: 12px 10px;
+  padding: 12px 8px;
   font-size: 0.95rem;
   font-weight: 800;
   color: #000000;
@@ -902,7 +990,13 @@ body.day-mode {
 }
 
 .slip-reference-table td.cell-date { text-align: center; font-size: 0.95rem; }
-.slip-reference-table td.cell-desc { text-align: left; font-size: 0.95rem; }
+.slip-reference-table td.cell-desc {
+  text-align: left;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
 .slip-reference-table td.cell-amt  { text-align: center; font-size: 1.05rem; font-weight: 900; white-space: nowrap; }
 
 /* Exactly matching user's uploaded reference image */
@@ -915,9 +1009,14 @@ body.day-mode {
 .slip-reference-table tr.row-credit { background-color: #f0fdf4; }
 .slip-reference-table tr.row-credit .cell-amt { color: var(--color-green); }
 
+/* Total Balance Rows: Green if positive, Red if negative */
 .slip-reference-table tr.row-remaining { background-color: var(--ref-remaining-bg); }
 .slip-reference-table tr.row-remaining .cell-desc { color: var(--ref-dark-green); }
 .slip-reference-table tr.row-remaining .cell-amt { color: var(--ref-dark-green); }
+
+.slip-reference-table tr.row-total-negative { background-color: #fee2e2; }
+.slip-reference-table tr.row-total-negative .cell-desc { color: #b91c1c; }
+.slip-reference-table tr.row-total-negative .cell-amt { color: #dc2626; }
 
 .statement-bottom-buttons {
   display: flex;

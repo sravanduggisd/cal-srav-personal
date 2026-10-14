@@ -37,6 +37,10 @@ def init_db():
         cur.execute("ALTER TABLE customers ADD COLUMN history TEXT DEFAULT '[]'")
     except Exception:
         pass
+    try:
+        cur.execute("ALTER TABLE customers ADD COLUMN notes TEXT DEFAULT ''")
+    except Exception:
+        pass
     
     # Transactions table
     cur.execute("""
@@ -81,12 +85,13 @@ class LedgerHandler(http.server.SimpleHTTPRequestHandler):
             conn = sqlite3.connect(DB_PATH)
             cur = conn.cursor()
             
-            cur.execute("SELECT id, name, phone, old_balance, old_balance_date, history FROM customers ORDER BY created_at ASC")
+            cur.execute("SELECT id, name, phone, old_balance, old_balance_date, history, notes FROM customers ORDER BY created_at ASC")
             cust_rows = cur.fetchall()
             
             customers = []
             for row in cust_rows:
-                cid, name, phone, old_bal, old_date, hist_raw = row
+                cid, name, phone, old_bal, old_date, hist_raw = row[0], row[1], row[2], row[3], row[4], row[5]
+                notes = row[6] if len(row) > 6 and row[6] is not None else ""
                 try:
                     hist = json.loads(hist_raw) if hist_raw else []
                 except Exception:
@@ -109,6 +114,7 @@ class LedgerHandler(http.server.SimpleHTTPRequestHandler):
                     "oldBalance": float(old_bal or 0),
                     "oldBalanceDate": old_date or "",
                     "history": hist,
+                    "notes": notes,
                     "entries": entries
                 })
                 
@@ -138,9 +144,9 @@ class LedgerHandler(http.server.SimpleHTTPRequestHandler):
             for c in customers:
                 hist_str = json.dumps(c.get("history", []))
                 cur.execute("""
-                    INSERT INTO customers (id, name, phone, old_balance, old_balance_date, history)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (c["id"], c["name"], c.get("phone", ""), float(c.get("oldBalance", 0)), c.get("oldBalanceDate", ""), hist_str))
+                    INSERT INTO customers (id, name, phone, old_balance, old_balance_date, history, notes)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (c["id"], c["name"], c.get("phone", ""), float(c.get("oldBalance", 0)), c.get("oldBalanceDate", ""), hist_str, c.get("notes", "")))
                 
                 for e in c.get("entries", []):
                     cur.execute("""

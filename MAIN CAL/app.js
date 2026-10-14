@@ -231,10 +231,10 @@ function renderDrawerCustomersList() {
       <div class="drawer-cust-card ${isActive ? "active-cust" : ""}" onclick="selectCustomerFromDrawer('${c.id}')">
         <div class="dcc-top">
           <div class="dcc-name">👤 ${escapeHtml(c.name)}</div>
-          <div class="dcc-bal ${statusClass}">₹${formatCurrency(calc.remaining)}</div>
+          <div class="dcc-bal ${statusClass}">${isPositive ? "₹" : "-₹"}${formatCurrency(calc.remaining)}</div>
         </div>
         <div class="dcc-sub">
-          Old: ₹${formatCurrency(calc.oldBal)} (${c.oldBalanceDate || "Set"}) • ${(c.entries || []).length} entries
+          Old: ₹${formatCurrency(calc.oldBal)} (${c.oldBalanceDate || "Set"}) • ${(c.entries || []).length} entries${c.notes ? ' • 📝 Note' : ''}
         </div>
         <div class="dcc-actions" onclick="event.stopPropagation()">
           <button class="btn-dcc-select" onclick="selectCustomerFromDrawer('${c.id}')">Select</button>
@@ -277,10 +277,45 @@ function renderCalculationScreen() {
   // Header Title
   document.getElementById("activeCustomerTitle").textContent = cust.name;
 
-  // Remaining Balance (Green if positive, Red if negative)
+  // Total Balance (Green if positive/zero, Red if negative)
   const remDisplay = document.getElementById("activeRemainingBalance");
+  const curSign = document.getElementById("activeCurrencySign");
+  const balBox = document.getElementById("customerBalanceBox");
+
+  const isNeg = calc.remaining < 0;
   remDisplay.textContent = formatCurrency(calc.remaining);
-  remDisplay.className = calc.remaining >= 0 ? "cust-bal-digits" : "cust-bal-digits negative";
+
+  if (isNeg) {
+    if (curSign) {
+      curSign.textContent = "-₹";
+      curSign.classList.add("negative");
+    }
+    remDisplay.className = "cust-bal-digits negative";
+    if (balBox) balBox.classList.add("is-negative");
+  } else {
+    if (curSign) {
+      curSign.textContent = "₹";
+      curSign.classList.remove("negative");
+    }
+    remDisplay.className = "cust-bal-digits";
+    if (balBox) balBox.classList.remove("is-negative");
+  }
+
+  // Customer Notes Notebook Widget (User Red Box area)
+  const notesWidget = document.getElementById("custNotesWidget");
+  const notesPreview = document.getElementById("custNotesPreview");
+  const notesAction = document.getElementById("notesWidgetAction");
+  if (notesWidget && notesPreview) {
+    if (cust.notes && cust.notes.trim()) {
+      notesWidget.classList.add("has-note");
+      notesPreview.textContent = cust.notes.trim();
+      if (notesAction) notesAction.textContent = "✏️";
+    } else {
+      notesWidget.classList.remove("has-note");
+      notesPreview.innerHTML = "<em>Tap to add note...</em>";
+      if (notesAction) notesAction.textContent = "+";
+    }
+  }
 
   // 3 Breakdown Pills
   document.getElementById("activeOldBalanceVal").textContent = `₹${formatCurrency(calc.oldBal)}`;
@@ -562,13 +597,16 @@ function showStatementSlipScreen() {
     `);
   });
 
-  // Bottom Row: Remaining Balance (Soft Mint Green #e8f8ed) - 100% Plain
+  // Bottom Row: Total Balance (Soft Mint Green #e8f8ed if positive, Soft Red #fee2e2 if negative) - 100% Plain
   const remDate = calc.lastDate || cust.oldBalanceDate || getTodayText();
+  const isNeg = calc.remaining < 0;
+  const rowClass = isNeg ? "row-total-negative" : "row-remaining";
+  const sign = isNeg ? "-₹" : "₹";
   rows.push(`
-    <tr class="row-remaining">
+    <tr class="${rowClass}">
       <td class="cell-date">${escapeHtml(remDate)}</td>
-      <td class="cell-desc">Remaining Balance</td>
-      <td class="cell-amt">₹${formatCurrency(calc.remaining)}</td>
+      <td class="cell-desc">Total Balance</td>
+      <td class="cell-amt">${sign}${formatCurrency(calc.remaining)}</td>
     </tr>
   `);
 
@@ -587,6 +625,55 @@ function backToCalculationScreen() {
 }
 
 /**
+ * Canvas Text Wrapping & Auto-scaling Helper
+ * Ensures description text NEVER spills or dodges out of the column boundary
+ */
+function drawCanvasWrappedText(ctx, text, x, centerY, maxWidth, maxFontSize = 34, minFontSize = 22) {
+  text = String(text || "").trim();
+  if (!text) return;
+
+  // 1. Try single line with decreasing font sizes
+  for (let fs = maxFontSize; fs >= minFontSize; fs -= 2) {
+    ctx.font = `bold ${fs}px 'Plus Jakarta Sans', Arial, sans-serif`;
+    if (ctx.measureText(text).width <= maxWidth) {
+      ctx.fillText(text, x, centerY);
+      return;
+    }
+  }
+
+  // 2. Wrap into 2 lines
+  const words = text.split(/\s+/);
+  let line1 = "";
+  let line2 = "";
+  let fs = 26;
+  ctx.font = `bold ${fs}px 'Plus Jakarta Sans', Arial, sans-serif`;
+
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line1 ? line1 + " " + words[i] : words[i];
+    if (ctx.measureText(testLine).width <= maxWidth || i === 0) {
+      line1 = testLine;
+    } else {
+      line2 = words.slice(i).join(" ");
+      break;
+    }
+  }
+
+  // Ensure line1 and line2 fit within maxWidth
+  while (line2 && (ctx.measureText(line1).width > maxWidth || ctx.measureText(line2).width > maxWidth) && fs > 18) {
+    fs -= 2;
+    ctx.font = `bold ${fs}px 'Plus Jakarta Sans', Arial, sans-serif`;
+  }
+
+  if (line2) {
+    const lineGap = fs * 1.25;
+    ctx.fillText(line1, x, centerY - lineGap / 2);
+    ctx.fillText(line2, x, centerY + lineGap / 2);
+  } else {
+    ctx.fillText(line1, x, centerY);
+  }
+}
+
+/**
  * EXACT PHOTO SLIP GENERATOR (PIXEL-PERFECT CANVAS, ZERO DUSTBINS)
  */
 function generatePhotoSlipImage(callback) {
@@ -599,7 +686,7 @@ function generatePhotoSlipImage(callback) {
 
   const hasOldBal = Math.abs(calc.oldBal) >= 1;
   const entriesCount = (cust.entries || []).length;
-  const totalRows = (hasOldBal ? 1 : 0) + entriesCount + 1; // +1 for remaining balance
+  const totalRows = (hasOldBal ? 1 : 0) + entriesCount + 1; // +1 for total balance
   const baseWidth = 1024;
   const headerHeight = 110;
   const rowHeight = 115;
@@ -613,9 +700,10 @@ function generatePhotoSlipImage(callback) {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, baseWidth, baseHeight);
 
-  const col1W = 260; // Date
-  const col2W = 460; // Description
-  const col3W = 304; // Amount
+  // Column distribution: widened Description to 520px so long letters never dodge out of the box
+  const col1W = 230; // Date
+  const col2W = 520; // Description
+  const col3W = 274; // Amount
 
   const x0 = 0;
   const x1 = col1W;
@@ -647,7 +735,8 @@ function generatePhotoSlipImage(callback) {
     ctx.fillText(cust.oldBalanceDate || "Old", x0 + col1W / 2, currentY + rowHeight / 2);
 
     ctx.textAlign = "left";
-    ctx.fillText("Old Balance", x1 + 35, currentY + rowHeight / 2);
+    ctx.font = "bold 38px 'Plus Jakarta Sans', Arial, sans-serif";
+    ctx.fillText("Old Balance", x1 + 30, currentY + rowHeight / 2);
 
     ctx.fillStyle = "#006400";
     ctx.font = "bold 42px 'Plus Jakarta Sans', Arial, sans-serif";
@@ -669,14 +758,12 @@ function generatePhotoSlipImage(callback) {
     ctx.textAlign = "center";
     ctx.fillText(e.date || "", x0 + col1W / 2, currentY + rowHeight / 2);
 
+    // Description text (auto-wrapped and constrained so letters never dodge/poke out into Amount)
+    ctx.fillStyle = "#000000";
     ctx.textAlign = "left";
     const desc = e.description || "";
-    if (desc.length > 25) {
-      ctx.font = "bold 30px 'Plus Jakarta Sans', Arial, sans-serif";
-    } else {
-      ctx.font = "bold 36px 'Plus Jakarta Sans', Arial, sans-serif";
-    }
-    ctx.fillText(desc, x1 + 35, currentY + rowHeight / 2);
+    const maxDescW = col2W - 50;
+    drawCanvasWrappedText(ctx, desc, x1 + 30, currentY + rowHeight / 2, maxDescW, 34, 22);
 
     ctx.fillStyle = isDebit ? "#dc2626" : "#059669";
     ctx.font = "bold 42px 'Plus Jakarta Sans', Arial, sans-serif";
@@ -687,8 +774,9 @@ function generatePhotoSlipImage(callback) {
     currentY += rowHeight;
   });
 
-  // 4. Remaining Balance (Soft Mint Green #e8f8ed)
-  ctx.fillStyle = "#e8f8ed";
+  // 4. Total Balance (Soft Mint Green #e8f8ed if positive, Soft Red #fee2e2 if negative)
+  const isNeg = calc.remaining < 0;
+  ctx.fillStyle = isNeg ? "#fee2e2" : "#e8f8ed";
   ctx.fillRect(0, currentY, baseWidth, rowHeight);
 
   ctx.fillStyle = "#000000";
@@ -697,13 +785,16 @@ function generatePhotoSlipImage(callback) {
   const remDate = calc.lastDate || cust.oldBalanceDate || getTodayText();
   ctx.fillText(remDate, x0 + col1W / 2, currentY + rowHeight / 2);
 
-  ctx.fillStyle = "#006400";
+  ctx.fillStyle = isNeg ? "#b91c1c" : "#006400";
   ctx.font = "bold 40px 'Plus Jakarta Sans', Arial, sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText("Remaining Balance", x1 + 35, currentY + rowHeight / 2);
+  ctx.fillText("Total Balance", x1 + 30, currentY + rowHeight / 2);
 
+  ctx.fillStyle = isNeg ? "#dc2626" : "#006400";
+  ctx.font = "bold 42px 'Plus Jakarta Sans', Arial, sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(`₹${formatCurrency(calc.remaining)}`, x2 + col3W / 2, currentY + rowHeight / 2);
+  const balSign = isNeg ? "-₹" : "₹";
+  ctx.fillText(`${balSign}${formatCurrency(calc.remaining)}`, x2 + col3W / 2, currentY + rowHeight / 2);
 
   // 5. Crisp Black Border Grid (Zero icons, 100% plain)
   ctx.strokeStyle = "#1e293b";
@@ -763,13 +854,65 @@ function shareStatementWhatsApp() {
     text += `📅 ${e.date}: ${e.description} ➜ *${sign}${formatCurrency(e.amount)}*\n`;
   });
 
+  const isNeg = calc.remaining < 0;
+  const balSign = isNeg ? "-₹" : "₹";
+  const balIcon = isNeg ? "🔴" : "✅";
   text += `━━━━━━━━━━━━━━━━━━\n`;
-  text += `✅ *REMAINING BALANCE: ₹${formatCurrency(calc.remaining)}*\n`;
+  text += `${balIcon} *TOTAL BALANCE: ${balSign}${formatCurrency(calc.remaining)}*\n`;
   text += `━━━━━━━━━━━━━━━━━━\n`;
   text += `(Downloaded via Cal Ledger App)`;
 
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
 }
+
+// =========================================================
+// CUSTOMER NOTEBOOK / NOTES MANAGEMENT
+// =========================================================
+function openNotesModal() {
+  const cust = getActiveCustomer();
+  if (!cust) return;
+  document.getElementById("notesCustomerName").textContent = cust.name;
+  const input = document.getElementById("customerNotesInput");
+  input.value = cust.notes || "";
+  document.getElementById("customerNotesModal").classList.add("active");
+  setTimeout(() => input.focus(), 120);
+}
+
+function closeNotesModal() {
+  document.getElementById("customerNotesModal").classList.remove("active");
+}
+
+function saveCustomerNote() {
+  const cust = getActiveCustomer();
+  if (!cust) return;
+  const input = document.getElementById("customerNotesInput");
+  cust.notes = (input.value || "").trim();
+  saveState();
+  renderCalculationScreen();
+  renderDrawerCustomersList();
+  closeNotesModal();
+}
+
+function deleteCustomerNote() {
+  const cust = getActiveCustomer();
+  if (!cust) return;
+  if (!cust.notes) {
+    closeNotesModal();
+    return;
+  }
+  if (confirm(`Delete the note for "${cust.name}"?`)) {
+    cust.notes = "";
+    saveState();
+    renderCalculationScreen();
+    renderDrawerCustomersList();
+    closeNotesModal();
+  }
+}
+
+window.openNotesModal = openNotesModal;
+window.closeNotesModal = closeNotesModal;
+window.saveCustomerNote = saveCustomerNote;
+window.deleteCustomerNote = deleteCustomerNote;
 
 // Clear All Data
 function resetAllData() {

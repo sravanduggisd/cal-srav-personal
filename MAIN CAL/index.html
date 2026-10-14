@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=12">
 </head>
 <body class="day-mode">
   <div class="app-container">
@@ -90,11 +90,26 @@
       </header>
 
       <!-- Top Calculation Box -->
-      <section class="customer-balance-box">
-        <div class="cust-bal-label">REMAINING BALANCE</div>
-        <div class="cust-bal-display">
-          <span class="currency-sign">₹</span>
-          <span class="cust-bal-digits" id="activeRemainingBalance">0</span>
+      <section class="customer-balance-box" id="customerBalanceBox">
+        <div class="cust-bal-top-row">
+          <div class="cust-bal-main">
+            <div class="cust-bal-label" id="custBalLabel">TOTAL BALANCE</div>
+            <div class="cust-bal-display">
+              <span class="currency-sign" id="activeCurrencySign">₹</span>
+              <span class="cust-bal-digits" id="activeRemainingBalance">0</span>
+            </div>
+          </div>
+
+          <!-- Customer Notes Notebook Widget (Highlighted area from user image) -->
+          <div class="cust-notes-widget" id="custNotesWidget" onclick="openNotesModal()" title="View & Edit Notes for this Customer">
+            <div class="notes-widget-header">
+              <span class="notes-widget-title">📝 Note</span>
+              <span class="notes-widget-action" id="notesWidgetAction">✏️</span>
+            </div>
+            <div class="notes-widget-body" id="custNotesPreview">
+              <em>Tap to add note...</em>
+            </div>
+          </div>
         </div>
 
         <!-- 3 Breakdown Pills: Old Balance (Black), Debited (Red), Credited (Green) -->
@@ -378,6 +393,35 @@
     </div>
 
     <!-- =========================================================
+         MODAL: CUSTOMER NOTEBOOK / NOTES
+         ========================================================= -->
+    <div class="modal-overlay" id="customerNotesModal">
+      <div class="dialog-card">
+        <div class="dialog-header">
+          <div>
+            <h3 class="dialog-title">📝 Notes — <span id="notesCustomerName">Customer</span></h3>
+            <p class="dialog-subtitle">Notebook notes, promises & remarks for this account</p>
+          </div>
+          <button class="dialog-close" id="closeNotesModalBtn" onclick="closeNotesModal()">✕</button>
+        </div>
+
+        <div class="dialog-form">
+          <div class="form-item">
+            <textarea id="customerNotesInput" rows="6" class="form-control" style="resize: vertical; font-size: 0.95rem; line-height: 1.4; padding: 12px; min-height: 130px;" placeholder="Write any notes about this customer (e.g. promised payment dates, address, personal notes, shop directions)..."></textarea>
+          </div>
+        </div>
+
+        <div class="dialog-actions" style="justify-content: space-between; align-items: center; margin-top: 14px;">
+          <button type="button" class="btn-danger-outline" id="btnDeleteNote" onclick="deleteCustomerNote()" style="padding: 11px 14px;">🗑️ Delete</button>
+          <div style="display: flex; gap: 8px; flex: 1; justify-content: flex-end;">
+            <button type="button" class="btn-subtle" onclick="closeNotesModal()" style="max-width: 110px;">Cancel</button>
+            <button type="button" class="btn-primary-bold" onclick="saveCustomerNote()" style="max-width: 140px;">💾 Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================
          POPUP CALCULATOR
          ========================================================= -->
     <div class="calc-popup" id="calcPopup">
@@ -421,6 +465,6 @@
     <canvas id="photoExportCanvas" style="display:none;"></canvas>
   </div>
 
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>
