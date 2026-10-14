@@ -544,10 +544,11 @@ body.day-mode {
 
 .cust-bal-digits {
   font-family: var(--font-mono);
-  font-size: 2.2rem;
+  font-size: clamp(1.4rem, 5.2vw, 2.2rem);
   font-weight: 900;
   color: var(--color-green);
   letter-spacing: -0.5px;
+  white-space: nowrap;
 }
 
 .cust-bal-digits.negative {
@@ -644,8 +645,9 @@ body.day-mode {
 
 .cp-val {
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: clamp(0.72rem, 2.4vw, 0.85rem);
   font-weight: 800;
+  white-space: nowrap;
 }
 
 /* Strict Old Balance in Solid Jet Black */
@@ -938,7 +940,7 @@ body.day-mode {
    ========================================================= */
 
 .statement-page-content {
-  padding: 14px;
+  padding: 10px 8px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -969,19 +971,20 @@ body.day-mode {
 .slip-reference-table th {
   background: var(--ref-header-blue);
   color: #ffffff;
-  font-size: 1.05rem;
+  font-size: clamp(0.85rem, 3.2vw, 1.05rem);
   font-weight: 800;
-  padding: 12px 6px;
+  padding: 10px 3px;
   text-align: center;
   border: 1.5px solid var(--ref-border);
 }
 
-.slip-reference-table th.col-date { width: 23%; }
-.slip-reference-table th.col-desc { width: 51%; }
-.slip-reference-table th.col-amt  { width: 26%; }
+/* Optimized column widths: Amount widened to 36% so big numbers never clip */
+.slip-reference-table th.col-date { width: 21%; }
+.slip-reference-table th.col-desc { width: 43%; }
+.slip-reference-table th.col-amt  { width: 36%; }
 
 .slip-reference-table td {
-  padding: 12px 8px;
+  padding: 10px 4px;
   font-size: 0.95rem;
   font-weight: 800;
   color: #000000;
@@ -989,15 +992,35 @@ body.day-mode {
   vertical-align: middle;
 }
 
-.slip-reference-table td.cell-date { text-align: center; font-size: 0.95rem; }
+.slip-reference-table td.cell-date {
+  text-align: center;
+  font-size: clamp(0.75rem, 2.7vw, 0.90rem);
+  padding: 10px 2px;
+}
+
 .slip-reference-table td.cell-desc {
   text-align: left;
-  font-size: 0.95rem;
+  font-size: clamp(0.78rem, 2.9vw, 0.92rem);
   line-height: 1.35;
+  padding: 10px 6px;
   word-break: break-word;
   overflow-wrap: break-word;
 }
-.slip-reference-table td.cell-amt  { text-align: center; font-size: 1.05rem; font-weight: 900; white-space: nowrap; }
+
+.slip-reference-table td.cell-amt {
+  text-align: center;
+  font-size: clamp(0.82rem, 3.2vw, 1.02rem);
+  font-weight: 900;
+  white-space: nowrap;
+  letter-spacing: -0.3px;
+  padding: 10px 2px;
+}
+
+/* Extra safety for long numbers (e.g. -₹1,60,000 or -₹10,50,000) */
+.slip-reference-table td.cell-amt.amt-long {
+  font-size: clamp(0.74rem, 2.7vw, 0.88rem);
+  letter-spacing: -0.5px;
+}
 
 /* Exactly matching user's uploaded reference image */
 .slip-reference-table tr.row-old-balance { background-color: var(--ref-old-bal-bg); }

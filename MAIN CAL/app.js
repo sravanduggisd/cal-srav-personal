@@ -570,6 +570,12 @@ function showStatementSlipScreen() {
   const tbody = document.getElementById("statementSlipTableBody");
   const rows = [];
 
+  const formatAmtCell = (sign, amt) => {
+    const formatted = `${sign}${formatCurrency(amt)}`;
+    const isLong = formatted.length > 9;
+    return `<td class="cell-amt ${isLong ? "amt-long" : ""}">${formatted}</td>`;
+  };
+
   // Row 1: Old Balance (Soft Blue #eaf2ff) - 100% Plain
   // Requirement: If Old Balance is 0, do not present Old Balance row. Only show if at least ₹1.
   if (Math.abs(calc.oldBal) >= 1) {
@@ -577,7 +583,7 @@ function showStatementSlipScreen() {
       <tr class="row-old-balance">
         <td class="cell-date">${escapeHtml(cust.oldBalanceDate || "Old")}</td>
         <td class="cell-desc">Old Balance</td>
-        <td class="cell-amt">₹${formatCurrency(calc.oldBal)}</td>
+        ${formatAmtCell("₹", calc.oldBal)}
       </tr>
     `);
   }
@@ -592,7 +598,7 @@ function showStatementSlipScreen() {
       <tr class="${rowClass}">
         <td class="cell-date">${escapeHtml(e.date || "")}</td>
         <td class="cell-desc">${escapeHtml(e.description)}</td>
-        <td class="cell-amt">${sign}${formatCurrency(e.amount)}</td>
+        ${formatAmtCell(sign, e.amount)}
       </tr>
     `);
   });
@@ -606,7 +612,7 @@ function showStatementSlipScreen() {
     <tr class="${rowClass}">
       <td class="cell-date">${escapeHtml(remDate)}</td>
       <td class="cell-desc">Total Balance</td>
-      <td class="cell-amt">${sign}${formatCurrency(calc.remaining)}</td>
+      ${formatAmtCell(sign, calc.remaining)}
     </tr>
   `);
 
@@ -700,10 +706,10 @@ function generatePhotoSlipImage(callback) {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, baseWidth, baseHeight);
 
-  // Column distribution: widened Description to 520px so long letters never dodge out of the box
-  const col1W = 230; // Date
-  const col2W = 520; // Description
-  const col3W = 274; // Amount
+  // Column distribution: 215 Date | 485 Description | 324 Amount (extra space for large amounts)
+  const col1W = 215; // Date
+  const col2W = 485; // Description
+  const col3W = 324; // Amount
 
   const x0 = 0;
   const x1 = col1W;
